@@ -48,3 +48,71 @@ TEST(Create, copy_constructor_different_precision){
 	FixedPoint<12> dest = source;
 	EXPECT_EQ(source, dest);
 }
+
+TEST(Arithmetics, assign_plus_same_size_no_overflow){
+	FixedPoint<4> left(2.1234);
+	FixedPoint<4> right(3.4321);
+	FixedPoint<4> result(5.5555);
+	left += right;
+	EXPECT_EQ(left, result);
+}
+
+TEST(Arithmetics, assign_plus_same_size_simple_overflow){
+	FixedPoint<4> left(2.1239);
+	FixedPoint<4> right(3.4321);
+	FixedPoint<4> result(5.5560);
+	left += right;
+	EXPECT_EQ(left, result);
+}
+
+TEST(Arithmetics, assign_plus_same_size_int_overflow){
+	FixedPoint<4>   left(2.9939);
+	FixedPoint<4>  right(3.4391);
+	FixedPoint<4> result(6.4330);
+	left += right;
+	EXPECT_EQ(left, result);
+}
+
+TEST(Arithmetics, plus_same_size_no_overflow){
+	FixedPoint<4> left(2.1234);
+	FixedPoint<4> right(3.4321);
+	FixedPoint<4> result(5.5555);
+	EXPECT_EQ(left+right, result);
+}
+
+TEST(Arithmetics, plus_same_size_simple_overflow){
+	FixedPoint<4> left(2.1239);
+	FixedPoint<4> right(3.4321);
+	FixedPoint<4> result(5.5560);
+	EXPECT_EQ(left+right, result);
+}
+
+TEST(Arithmetics, plus_same_size_int_overflow){
+	FixedPoint<4>   left(2.9939);
+	FixedPoint<4>  right(3.4391);
+	FixedPoint<4> result(6.4330);
+	EXPECT_EQ(left+right, result);
+}
+
+TEST(Arithmetics, assign_plus_no_overflow){
+	FixedPoint<4> left(2.1234);
+	FixedPoint<8> right(3.43210000);
+	FixedPoint<4> result(5.5555);
+	left += right;
+	EXPECT_EQ(left, result);
+}
+
+TEST(Arithmetics, assign_plus_simple_overflow){
+	FixedPoint<4> left(2.1234);
+	FixedPoint<8> right(3.43219000);
+	FixedPoint<4> result(5.5556);
+	left += right;
+	EXPECT_EQ(left, result);
+}
+
+TEST(Arithmetics, plus_no_overflow){
+	FixedPoint<4> left(2.1234);
+	FixedPoint<8> right(3.43210000);
+	FixedPoint<8> result(5.55550000);
+	EXPECT_EQ(left+right, result);
+}

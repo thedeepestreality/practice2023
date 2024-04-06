@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-pedantic-errors -std=c++20
 LDFLAGS=-lgtest -lgtest_main
-SOURCES=test.cpp version.cpp
+SOURCES=test.cpp
 EXECUTABLE=test
 
 all: $(SOURCES) $(EXECUTABLE)
