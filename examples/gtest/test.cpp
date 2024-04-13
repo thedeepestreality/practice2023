@@ -16,6 +16,16 @@ TEST(Create, negative_val_init) {
 	EXPECT_EQ(p.toString(), std::string("-273.00000000"));
 }
 
+TEST(Create, negative_double_val) {
+	FixedPoint<4> p(-2.4000);
+	EXPECT_EQ(p.toString(), std::string("-2.4000")) << p.toString();
+}
+
+TEST(Create, negative_double_round) {
+	FixedPoint<2> p(-2.446);
+	EXPECT_EQ(p.toString(), std::string("-2.45")) << p.toString();
+}
+
 TEST(Create, compare_init) {
 	FixedPoint<8> p1(-273);
 	FixedPoint<8> p2(-273);
@@ -47,6 +57,24 @@ TEST(Create, copy_constructor_different_precision){
 	FixedPoint<8> source(2.5);
 	FixedPoint<12> dest = source;
 	EXPECT_EQ(source, dest);
+}
+
+TEST(Compare, small_fixed_diff){
+	FixedPoint<6> left(1.250000);
+	FixedPoint<8> right(1.25000001);
+	EXPECT_FALSE(left == right);
+}
+
+TEST(Compare, less_true){
+	FixedPoint<6> left(1.250000);
+	FixedPoint<8> right(1.25000001);
+	EXPECT_TRUE(left < right);
+}
+
+TEST(Compare, less_false){
+	FixedPoint<6> left(1.250000);
+	FixedPoint<8> right(1.25000000);
+	EXPECT_FALSE(left < right);
 }
 
 TEST(Arithmetics, assign_plus_same_size_no_overflow){
@@ -115,4 +143,12 @@ TEST(Arithmetics, plus_no_overflow){
 	FixedPoint<8> right(3.43210000);
 	FixedPoint<8> result(5.55550000);
 	EXPECT_EQ(left+right, result);
+}
+
+TEST(Arithmetics, plus_negative){
+	FixedPoint<4> left(2.5000);
+	FixedPoint<4> right(-1.2000);
+	FixedPoint<4> result_expected(1.3000);
+	FixedPoint<4> result_fact = left+right;
+	EXPECT_EQ(result_fact, result_expected) << result_fact.toString();
 }

@@ -20,7 +20,7 @@ private:
 	}
 public:
 	FixedPoint(double doubleVal = 0.0) : _integer(doubleVal) {
-		doubleVal -= _integer;
+		doubleVal = std::abs(doubleVal - _integer);
 		for (auto& c: _digits){
 			doubleVal *= 10;
 			c = doubleVal;
@@ -65,10 +65,30 @@ public:
 				return false;
 		int maxSize = std::max(Size, OtherSize);
 		const unsigned char* const maxPtr = (Size > OtherSize) ? _digits : otherDigits;
-		for (int idx=minSize; idx<maxSize - minSize; ++idx)
+		for (int idx=minSize; idx<maxSize; ++idx)
 			if (maxPtr[idx] != 0)
 				return false;
+		//1.25
+		//1.2500
 		return true;
+	}
+
+	template <int OtherSize>
+	bool isLess(const FixedPoint<OtherSize>& val) const
+	{
+		if (_integer < val.getInteger())
+			return true;
+		int minSize = std::min(Size, OtherSize);
+		const unsigned char* otherDigits = val.getDigits();
+		for (int idx=0; idx<minSize; ++idx)
+			if (_digits[idx] > otherDigits[idx])
+				return false;
+		if (Size > OtherSize)
+			return false;
+		for (int idx=Size; idx<OtherSize; ++idx)
+			if (otherDigits[idx] != 0)
+				return true;
+		return false;
 	}
 
 	int getInteger() const{
@@ -107,6 +127,11 @@ public:
 		_integer += rem;
 		return *this;
 	}
+
+	// FixedPoint& operator+=(Const FixedPoint& right){
+	// 	*this = *this + right;
+	// 	return *this
+	// }
 };
 
 template <int LeftSize, int RightSize>
@@ -115,6 +140,47 @@ bool operator==(
 	const FixedPoint<RightSize>& right
 ){
 	return left.isEqual(right);
+	//return !(left < right) && !(right < left);
+}
+
+template <int LeftSize, int RightSize>
+bool operator!=(
+	const FixedPoint<LeftSize>& left, 
+	const FixedPoint<RightSize>& right
+){
+	return !left.isEqual(right);
+}
+
+template <int LeftSize, int RightSize>
+bool operator<(
+	const FixedPoint<LeftSize>& left, 
+	const FixedPoint<RightSize>& right
+){
+	return left.isLess(right);
+}
+
+template <int LeftSize, int RightSize>
+bool operator<=(
+	const FixedPoint<LeftSize>& left, 
+	const FixedPoint<RightSize>& right
+){
+	return left.isLess(right) || left.isEqual(right);
+}
+
+template <int LeftSize, int RightSize>
+bool operator>(
+	const FixedPoint<LeftSize>& left, 
+	const FixedPoint<RightSize>& right
+){
+	return !(left.isLess(right) || left.isEqual(right));
+}
+
+template <int LeftSize, int RightSize>
+bool operator>=(
+	const FixedPoint<LeftSize>& left, 
+	const FixedPoint<RightSize>& right
+){
+	return !left.isLess(right);
 }
 
 template <int Size>
@@ -123,6 +189,20 @@ FixedPoint<Size> operator+(const FixedPoint<Size>& left, const FixedPoint<Size> 
 	result += right;
 	return result;
 }
+
+// template <int Size>
+// FixedPoint<Size> operator+(const FixedPoint<Size>& left, const FixedPoint<Size> right){
+// 	FixedPoint<Size> result(left);
+// 	result._integer += right._integer;
+// 	int rem = 0;
+// 	for (int idx = Size-1; idx >= 0; --idx){
+// 		result._digits[idx] += right._digits[idx] + rem;
+// 		rem = _digits[idx] > 9;
+// 		result._digits[idx] -= rem*10;
+// 	}
+// 	result._integer += rem;
+// 	return result;
+// }
 
 template <int LeftSize, int RightSize, int MaxSize = std::max(LeftSize, RightSize)>
 FixedPoint<MaxSize> operator+(const FixedPoint<LeftSize>& left, const FixedPoint<RightSize> right){
@@ -135,5 +215,28 @@ FixedPoint<MaxSize> operator+(const FixedPoint<LeftSize>& left, const FixedPoint
 //const FixedPoint p(2);
 //FixedPoint p();
 //FixedPoint* p = new FixedPoint[10];
+
+// // *= over *
+// Complex operator*(const Complex& left, const Complex& right){
+// 	return Complex(left.re*right.re-left.im*left.im, left.re*right.im+left.im*right.im);
+// }
+
+// Complex& operator*=(const Complex& val){
+// 	*this = *this*val;
+// 	return *this;
+// }
+
+// // * over *=
+// Complex& operator*=(const Complex& right){
+// 	re = re*right.re-left.im*im;
+// 	im = re*right.im+im*right.im;
+// 	return *this;
+// }
+
+// Complex operator*(const Complex& left, const Complex& right){
+// 	Complex result(left);
+// 	result *= right;
+// 	return result;
+// }
 
 #endif
