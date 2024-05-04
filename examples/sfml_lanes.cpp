@@ -27,42 +27,75 @@ std::vector<sf::Vertex> getLanesTrapezoid(
 	const sf::ConvexShape& border,
 	double width
 ) {
-	double borderWidth = std::max(
-		border.getPoint(2).x - border.getPoint(1).x, 
-		border.getPoint(3).x - border.getPoint(0).x
-	);
+	double upLength = border.getPoint(2).x - border.getPoint(1).x;
+	double loLength = border.getPoint(3).x - border.getPoint(0).x;
+	// get max side length
+	double borderWidth = std::max(upLength, loLength);
+	// get left x offset
 	double x0 = std::min(border.getPoint(0).x, border.getPoint(1).x);
+	// lower and upper y coordinate
 	double yLo = border.getPoint(0).y;
 	double yUp = border.getPoint(1).y;
 
 	//double dx = factWidth / laneCount;
+
+	// dir vector of left side
 	double axL = border.getPoint(1).x - border.getPoint(0).x;
 	double ayL = border.getPoint(1).y - border.getPoint(0).y;
 	double aLength = std::sqrt(axL*axL + ayL * ayL);
 	axL /= aLength;
 	ayL /= aLength;
+	// normal vector of left side
 	double nxL = -ayL;
 	double nyL = axL;
-	std::vector<sf::Vertex> result;
+
+	// point on the first lane parallel to left side
 	Point P0 = border.getPoint(1) + sf::Vector2f(nxL*width / 2, nyL*width / 2);
+	// lane crossing with upper side
 	double t = (yUp - P0.y) / ayL;
 	double xUp0 = P0.x + axL * t;
-	//result.emplace_back(Point(xUp0, yUp));
+	// lane crossing with lower side
 	t = (yLo - P0.y) / ayL;
 	double xLo0 = P0.x + axL * t;
-	//result.emplace_back(Point(xLo0, yLo));
+
+	// width without left and right lane
 	double factWidth = borderWidth - width/2 - (xLo0- x0);
 	int laneCount = (int)(factWidth + width - 1) / width;
 	double dWidth = factWidth / laneCount;
 
+	// dir vector of right side
 	double axR = border.getPoint(2).x - border.getPoint(3).x;
 	double ayR = border.getPoint(2).y - border.getPoint(3).y;
 	double aRLength = std::sqrt(axR*axR + ayR * ayR);
 	axR /= aRLength;
 	ayR /= aRLength;
+
+	// calculate direction vector shift on each lane
 	double dax = (axR - axL) / laneCount;
 	double day = (ayR - ayL) / laneCount;
 
+	std::vector<sf::Vertex> result;
+	double xL0 = xLo0;
+	double yCurr = yLo;
+	double yOp = yUp;
+	if (upLength > loLength) {
+		xL0 = xUp0;
+		yCurr = yUp;
+		yOp = yLo;
+	}
+	for (int i = 0; i <= laneCount; ++i)
+	{
+		double xCurr = xL0 + i * dWidth;
+		double axCurr = axL + i * dax;
+		double ayCurr = ayL + i * day;
+
+		t = (yOp - yCurr) / ayCurr;
+		double xOp = xCurr + axCurr * t;
+
+		result.emplace_back(Point(xCurr, yCurr));
+		result.emplace_back(Point(xOp, yOp));
+		result.emplace_back(Point(xCurr, yCurr));
+	}
 	//for (int i = 0; i <= laneCount; ++i) {
 	//	result.emplace_back(Point(x0 + dx * i, yLo));
 	//	result.emplace_back(Point(x0 + dx * i, yUp));
@@ -73,7 +106,17 @@ std::vector<sf::Vertex> getLanesTrapezoid(
 
 sf::ConvexShape getLane(Point A, Point B, double width, sf::Color color) {
 	sf::ConvexShape lane;
-	Point delta(width / 2, 0);
+	// dir vector of left side
+	double ax = B.x - A.x;
+	double ay = B.y - A.y;
+	double aLength = std::sqrt(ax*ax + ay * ay);
+	ax /= aLength;
+	ay /= aLength;
+	// normal vector of left side
+	double nx = -ay;
+	double ny = ax;
+
+	Point delta(nx*width / 2, ny*width / 2);
 	lane.setPointCount(4);
 	lane.setPoint(0, A - delta);
 	lane.setPoint(1, B - delta);
